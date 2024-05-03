@@ -27,3 +27,8 @@ yarn-error.log*
 *.pyc
 /python/__pycache__/
 .env
+tmp.txt
+tmp.tsv
+tmp.srt
+tmp.vtt
+tmp.json

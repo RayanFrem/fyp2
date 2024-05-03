@@ -29,7 +29,7 @@ source venv/bin/activate
 
 pip install -r requirements.txt
 
-6. create an .env file at the roote directory and put your Google API Key in variable 
+6. create an .env file at the roote directory and put your Google API Key in variable GOOGLE_API_KEY
 
 ### Frontend Setup
 
