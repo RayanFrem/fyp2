@@ -1,0 +1,51 @@
+.login-modal {
+  position: fixed; /* Ensures it stays in place */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5); /* Semi-transparent black for overlay */
+  display: flex; /* Flex layout to center content */
+  justify-content: center;
+  align-items: center;
+}
+
+.login-content {
+  background: white; /* White background for the modal content */
+  padding: 20px; /* Padding inside the modal */
+  border-radius: 10px; /* Rounded corners */
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); /* Shadow for depth */
+  max-width: 400px; /* Maximum width for the modal */
+  text-align: center; /* Center text */
+}
+
+.login-content input {
+  width: 100%; /* Full width inputs */
+  padding: 10px; /* Padding inside inputs */
+  margin: 10px 0; /* Space between inputs */
+  border: 1px solid #ccc; /* Light border */
+  border-radius: 5px; /* Rounded corners */
+}
+
+.login-content button {
+  background-color: transparent;
+  border: 2px solid #333;
+  color: #333;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.login-content button:hover {
+  background-color: #333; /* Black background on hover */
+  color: white; /* White text on hover */
+}
+
+.login-content button:nth-child(2) { /* Styling for the close button */
+  background-color: #f44336; /* Red background */
+}
+
+.login-content button:nth-child(2):hover {
+  background-color: #e53935; /* Darker red on hover */
+}

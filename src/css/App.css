@@ -1,0 +1,227 @@
+/* General Styles */
+body {
+  font-family: 'Arial', sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+.app-container {
+  max-width: 800px;
+  margin: auto;
+  padding: 20px;
+  background: #f7f7f7;
+}
+
+.app-title {
+  text-align: center;
+  font-size: 1.5em;
+  color: #333;
+}
+
+/* One-column Layout */
+.chat-sequence {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.arrow {
+  margin: 10px 0;
+  color: #333;
+}
+
+/* Loading Animation */
+.loading-section {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2em;
+}
+
+.loading-section .fa-arrow-down {
+  font-size: 1.5em;
+}
+
+/* Section Styles */
+.prompt-section,
+.context-section,
+.answer-section,
+.suggestions-section {
+  text-align: center;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 10px;
+}
+
+.prompt-section {
+  background: #f0f8ff; /* Light blue */
+}
+
+.context-section {
+  background: #f9f9f9; /* Light gray */
+}
+
+.answer-section {
+  background: #e6ffe6; /* Light green */
+}
+
+.suggestions-section {
+  background: #fff5f5; /* Light red */
+}
+
+/* Mic Button Styles */
+.mic-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1.5em;
+}
+
+.mic-button:hover {
+  color: red;
+}
+
+.mic-button:focus {
+  outline: none;
+}
+
+.mic-button.recording {
+  color: red; /* Recording effect */
+}
+
+/* Form Styles */
+.prompt-form {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.prompt-form textarea {
+  width: 60%;
+  height: 50px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 10px;
+  font-size: 1em;
+}
+
+.prompt-form button {
+  background: #4CAF50;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  font-size: 1em;
+  cursor: pointer;
+}
+
+.prompt-form button:hover {
+  background: #45a049;
+}
+
+@media (max-width: 600px) {
+  .prompt-form {
+    flex-direction: column;
+  }
+
+  .prompt-form textarea {
+    width: 100%;
+  }
+}
+
+
+/* General Styles */
+body {
+  font-family: 'Arial', sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+.app-container {
+  max-width: 800px;
+  margin: auto;
+  padding: 20px;
+  background: #f7f7f7;
+}
+
+.app-title {
+  text-align: center;
+  font-size: 1.5em;
+  color: #333;
+}
+
+/* Login Button Styles */
+.login-button {
+  background: transparent;
+  border: 1px solid #ddd;
+  color: #333;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.login-button:hover {
+  background: #f0f0f0;
+}
+
+/* Modal Styles */
+.login-modal {
+  background: white;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  text-align: center;
+}
+
+.login-modal h2 {
+  margin: 0;
+  padding-bottom: 10px;
+}
+
+.login-modal button {
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  background: #4CAF50;
+  color: white;
+  border: none;
+}
+
+.login-modal button:hover {
+  background: #45a049;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.pulsing {
+  animation: pulse 1s infinite;
+}
+
+.chat-entry {
+  display: flex;
+  justify-content: space-between;
+}
+
+.prompt-section.right {
+  margin-left: auto;
+  width: 40%;
+}
+
+.answer-section.left {
+  width: 60%;
+}

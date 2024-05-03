@@ -1,0 +1,72 @@
+/* Base container for the Dashboard */
+.dashboard-container {
+    padding: 20px; /* Adds spacing around the Dashboard */
+    font-family: Arial, sans-serif; /* Default font for consistency */
+  }
+  
+  /* Header styling */
+  .dashboard-header {
+    display: flex;
+    justify-content: space-between; /* Space between elements */
+    align-items: center;
+    margin-bottom: 20px; /* Spacing between the header and other sections */
+  }
+  
+  .dashboard-header button {
+    background-color: transparent;
+    border: 2px solid #333;
+    color: #333;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+  }
+  
+  /* Hover effect: Background black, text white */
+  .dashboard-header button:hover {
+    background-color: #333; /* Black background on hover */
+    color: white; /* White text on hover */
+  }
+  
+  /* Disabled state: Gray out the button, no hover effect */
+  .dashboard-header button:disabled {
+    background-color: #cccccc; /* Gray background */
+    border: 1px solid gray; /* Gray border */
+    color: #777; /* Gray text */
+    cursor: not-allowed; /* Disabled cursor */
+  }
+  
+  /* Table styling */
+  .table {
+    width: 100%; /* Full width */
+    border-collapse: collapse; /* Collapses table borders */
+    margin-bottom: 20px; /* Space between tables */
+  }
+  
+  .table thead {
+    background-color: #f0f0f0; /* Light gray background for the header */
+  }
+  
+  .table th, .table td {
+    border: 1px solid #ddd; /* Border between cells */
+    padding: 10px; /* Padding inside cells */
+    text-align: left; /* Left-align text in cells */
+  }
+  
+  /* Table row hover effect */
+  .table tr:hover {
+    background-color: #f9f9f9; /* Light background on hover */
+  }
+  
+  /* Title styling for different sections */
+  h2, h3 {
+    color: #333; /* Dark gray for titles */
+    margin-bottom: 10px; /* Spacing below titles */
+  }
+  
+  /* Loading message style */
+  .dashboard-header p {
+    margin: 0; /* No extra margin */
+    color: #777; /* Lighter gray for informational text */
+  }
+  
