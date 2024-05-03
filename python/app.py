@@ -16,6 +16,10 @@ from werkzeug.utils import secure_filename
 import re
 import json
 import subprocess
+from dotenv import load_dotenv
+
+#loading env file
+load_dotenv()
 
 app = Flask(__name__)
 
@@ -24,7 +28,7 @@ CORS(app)
 CORS(app, resources={r"/api/": {"origins": ""}})
 
 #Gemini and Sentence transformer setups
-GOOGLE_API_KEY = "AIzaSyAj6iWH-zkPuv6reOne85Q8_7jpYP1vM9s"
+GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
 genai.configure(api_key=GOOGLE_API_KEY)
 model_embed = SentenceTransformer('sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2')
 gemini_model = genai.GenerativeModel('gemini-pro')
