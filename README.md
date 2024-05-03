@@ -30,6 +30,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 
 6. create an .env file at the roote directory and put your Google API Key in variable 
+
 ### Frontend Setup
 
 Ensure you are in the root directory of the project.
