@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import './css/App.css';
 import LLMAnswer from './components/LLMAnswer';
@@ -14,7 +14,12 @@ import Full from './components/FullPage/full';
 
 const App = () => {
   const [prompt, setPrompt] = useState('');
-  const [chatHistory, setChatHistory] = useState([]);
+  const [chatHistory, setChatHistory] = useState([{
+    prompt: '',
+    answer: 'My name is NeuralEDU (TradeMark) your chatbot assistance to your Biological course.You can ask ......',
+    suggestions: ['1.Comment est formé le vent?', '2.Que veut dire le métabolisme?', '3.De quoi est fait le vin?'],
+    context: ''
+  }]);
   const [isLoading, setIsLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
@@ -106,14 +111,15 @@ const App = () => {
                         Hear Response
                       </button>
                       {index === chatHistory.length - 1 && entry.suggestions && (
-                        <div className="suggestions-section">
-                          {entry.suggestions.map((suggestion, idx) => (
-                            <button key={idx} onClick={() => addUserPrompt(suggestion)}>
-                              {suggestion}
-                            </button>
-                          ))}
-                        </div>
-                      )}
+  <div className="suggestions-section">
+    {entry.suggestions.map((suggestion, idx) => (
+      <button key={idx} onClick={() => addUserPrompt(suggestion.length > 2 ? suggestion.substring(2) : suggestion)}>
+        {suggestion.length > 2 ? suggestion.substring(2) : suggestion}
+      </button>
+    ))}
+  </div>
+)}
+
                     </div>
                   </div>
                 ))}
