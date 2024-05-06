@@ -10,9 +10,15 @@ function Dashboard() {
   const [chromaDBData, setChromaDBData] = useState({ documents: [], ids: [], embeddings: [], metadatas: [] });
   const [isLoading, setIsLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
-  const [uploadStatus, setUploadStatus] = useState(null);
+  const [statusMessage, setStatusMessage] = useState('');
 
   useEffect(() => {
+    const statusMsg = sessionStorage.getItem('statusMessage');
+    if (statusMsg) {
+      setStatusMessage(statusMsg);
+      sessionStorage.removeItem('statusMessage'); 
+    }
+
     async function fetchFilesAndData() {
       setIsLoading(true);
       const treated = await getTreatedData();
@@ -28,37 +34,49 @@ function Dashboard() {
     fetchFilesAndData();
   }, []);
 
+  const handleIndexData = async () => {
+    setIsLoading(true);
+    try {
+      await treatData();
+      sessionStorage.setItem('statusMessage', 'Data indexed successfully!');
+      window.location.reload();
+    } catch (error) {
+      sessionStorage.setItem('statusMessage', 'Failed to index data. Check the console for more information.');
+      window.location.reload();
+    }
+  };
+
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file && file.type === "application/pdf") {
       setSelectedFile(file);
-      setUploadStatus(null);
+      setStatusMessage('');
     } else {
-      setUploadStatus({ success: false, message: "Please upload only PDF files." });
+      setStatusMessage("Please upload only PDF files.");
     }
   };
 
   const handleFileUpload = async () => {
     if (selectedFile) {
       const result = await uploadFile(selectedFile);
-      setUploadStatus(result);
-      setSelectedFile(null);
+      sessionStorage.setItem('statusMessage', result.message);
+      window.location.reload();
     }
   };
 
   return (
     <div className="dashboard-container">
       <div className="dashboard-header">
-        <button onClick={() => {}} disabled={isLoading}>
+        <button onClick={handleIndexData} disabled={isLoading || selectedFile}>
           {isLoading ? 'Indexing...' : 'Index Data'}
         </button>
         <input type="file" onChange={handleFileChange} accept=".pdf" />
         <button onClick={handleFileUpload} disabled={!selectedFile || isLoading}>
           Upload File
         </button>
-        {uploadStatus && (
-          <div className={`upload-status ${uploadStatus.success ? 'success' : 'error'}`}>
-            {uploadStatus.message}
+        {statusMessage && (
+          <div className={`upload-status ${statusMessage.includes('successfully') ? 'success' : 'error'}`}>
+            {statusMessage}
           </div>
         )}
         {isLoading && <p>Loading...</p>}
