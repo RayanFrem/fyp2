@@ -163,6 +163,21 @@ def remove_asterisks(text):
     
     return cleaned_text
 
+def allowed_file_ext(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() == 'pdf'
+
+
+
+#Below are the routes and functions for API calls
+@app.route('/api/upload', methods=['POST'])
+def upload():
+    file = request.files.get('file')
+    if file and allowed_file_ext(file.filename):
+        filename = secure_filename(file.filename)
+        file.save(os.path.join('../data/untreated', filename))
+        return 'File uploaded successfully', 200
+    return 'Invalid file or upload error', 400
+
 @app.route('/get-gemini-answer', methods=['POST'])
 def get_gemini_answer():     
     try:

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getTreatedData, getUntreatedData } from '../../services/getPDFs';
 import { treatData, fetchChromaDBData } from '../../services/ChromaDB';
+import uploadFile from '../../services/fileUploadService';
 import './Dashboard.css';
 
 function Dashboard() {
@@ -8,6 +9,8 @@ function Dashboard() {
   const [untreatedFiles, setUntreatedFiles] = useState([]);
   const [chromaDBData, setChromaDBData] = useState({ documents: [], ids: [], embeddings: [], metadatas: [] });
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploadStatus, setUploadStatus] = useState(null);
 
   useEffect(() => {
     async function fetchFilesAndData() {
@@ -25,25 +28,39 @@ function Dashboard() {
     fetchFilesAndData();
   }, []);
 
-  const handleIndexData = async () => {
-    setIsLoading(true);
-    try {
-      await treatData();
-      alert("Data indexed successfully!");
-    } catch (error) {
-      alert("Failed to index data. Please check the console for more information.");
-      console.error("Error indexing data:", error);
-    } finally {
-      setIsLoading(false);
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file && file.type === "application/pdf") {
+      setSelectedFile(file);
+      setUploadStatus(null);
+    } else {
+      setUploadStatus({ success: false, message: "Please upload only PDF files." });
+    }
+  };
+
+  const handleFileUpload = async () => {
+    if (selectedFile) {
+      const result = await uploadFile(selectedFile);
+      setUploadStatus(result);
+      setSelectedFile(null);
     }
   };
 
   return (
     <div className="dashboard-container">
       <div className="dashboard-header">
-        <button onClick={handleIndexData} disabled={isLoading}>
+        <button onClick={() => {}} disabled={isLoading}>
           {isLoading ? 'Indexing...' : 'Index Data'}
         </button>
+        <input type="file" onChange={handleFileChange} accept=".pdf" />
+        <button onClick={handleFileUpload} disabled={!selectedFile || isLoading}>
+          Upload File
+        </button>
+        {uploadStatus && (
+          <div className={`upload-status ${uploadStatus.success ? 'success' : 'error'}`}>
+            {uploadStatus.message}
+          </div>
+        )}
         {isLoading && <p>Loading...</p>}
       </div>
       <div>
@@ -67,7 +84,6 @@ function Dashboard() {
           <p>No untreated data available.</p>
         )}
       </div>
-      
       <div>
         <h3>Treated Data</h3>
         {treatedFiles.length > 0 ? (
@@ -89,10 +105,9 @@ function Dashboard() {
           <p>No treated data available.</p>
         )}
       </div>
-      
       <div>
         <h3>ChromaDB Data</h3>
-        {chromaDBData.documents && chromaDBData.documents.length > 0 ? (
+        {chromaDBData.documents.length > 0 ? (
           <table className="table">
             <thead>
               <tr className="tr">
@@ -106,7 +121,7 @@ function Dashboard() {
                 <tr key={index} className="tr">
                   <td className="td">{chromaDBData.ids[index]}</td>
                   <td className="td">{document}</td>
-                  <td className="td">{chromaDBData.metadatas && chromaDBData.metadatas[index] ? JSON.stringify(chromaDBData.metadatas[index]) : 'N/A'}</td>
+                  <td className="td">{chromaDBData.metadatas[index] ? JSON.stringify(chromaDBData.metadatas[index]) : 'N/A'}</td>
                 </tr>
               ))}
             </tbody>
@@ -116,7 +131,7 @@ function Dashboard() {
         )}
       </div>
     </div>
-  );  
+  );
 }
 
 export default Dashboard;
