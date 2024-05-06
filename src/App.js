@@ -96,32 +96,24 @@ const App = () => {
               <div className="chat-sequence">
                 {chatHistory.map((entry, index) => (
                   <div key={index} className="chat-entry">
-                    <div className="prompt-section right">
-                      <h2>Question</h2>
+                    <div className="question-section right">
                       <p>{entry.prompt}</p>
-
-                      {index === chatHistory.length - 1 && (
-                        <div className="suggestions-section">
-                          <h2>Suggestions</h2>
-                          <p>
-                            {entry.suggestions.map((suggestion, idx) => (
-                              <SuggestionItem
-  key={idx}
-  suggestion={suggestion}
-  handleClick={() => addUserPrompt(suggestion.length > 2 ? suggestion.substring(2) : suggestion)}
-/>
-                            ))}
-                          </p>
-                        </div>
-                      )}
                     </div>
                     <div className="answer-section left">
-                    <h2>Answer</h2>
                       <LLMAnswer answer={entry.answer} />
                       <button onClick={() => playTextToSpeech(entry.answer)}>
                         <FontAwesomeIcon icon={faVolumeUp} />
                         Hear Response
                       </button>
+                      {index === chatHistory.length - 1 && entry.suggestions && (
+                        <div className="suggestions-section">
+                          {entry.suggestions.map((suggestion, idx) => (
+                            <button key={idx} onClick={() => addUserPrompt(suggestion)}>
+                              {suggestion}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -140,7 +132,7 @@ const App = () => {
         </Routes>
       </div>
     </Router>
-  );
+  );  
 };
 
 export default App;
