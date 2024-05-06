@@ -25,8 +25,8 @@ function Dashboard() {
       const untreated = await getUntreatedData();
       const chromaData = await fetchChromaDBData();
 
-      setTreatedFiles(treated.length ? treated : ['No treated data available']);
-      setUntreatedFiles(untreated.length ? untreated : ['No untreated data available']);
+      setTreatedFiles(treated.length ? treated : ['Aucune donnée traitée disponible']);
+      setUntreatedFiles(untreated.length ? untreated : ['Aucune donnée non traitée disponible']);
       setChromaDBData(chromaData || { documents: [], ids: [], embeddings: [], metadatas: [] });
       setIsLoading(false);
     }
@@ -38,10 +38,10 @@ function Dashboard() {
     setIsLoading(true);
     try {
       await treatData();
-      sessionStorage.setItem('statusMessage', 'Data indexed successfully!');
+      sessionStorage.setItem('statusMessage', 'Données indexées avec succès!');
       window.location.reload();
     } catch (error) {
-      sessionStorage.setItem('statusMessage', 'Failed to index data. Check the console for more information.');
+      sessionStorage.setItem('statusMessage', "Échec de l'indexation des données. Consultez la console pour plus d'informations.");
       window.location.reload();
     }
   };
@@ -52,7 +52,7 @@ function Dashboard() {
       setSelectedFile(file);
       setStatusMessage('');
     } else {
-      setStatusMessage("Please upload only PDF files.");
+      setStatusMessage("Veuillez télécharger uniquement des fichiers PDF.");
     }
   };
 
@@ -68,26 +68,26 @@ function Dashboard() {
     <div className="dashboard-container">
       <div className="dashboard-header">
         <button onClick={handleIndexData} disabled={isLoading || selectedFile}>
-          {isLoading ? 'Indexing...' : 'Index Data'}
+          {isLoading ? 'Indexation en cours...' : 'Indexer les données'}
         </button>
         <input type="file" onChange={handleFileChange} accept=".pdf" />
         <button onClick={handleFileUpload} disabled={!selectedFile || isLoading}>
-          Upload File
+          Télécharger un fichier
         </button>
         {statusMessage && (
           <div className={`upload-status ${statusMessage.includes('successfully') ? 'success' : 'error'}`}>
             {statusMessage}
           </div>
         )}
-        {isLoading && <p>Loading...</p>}
+        {isLoading && <p>Chargement...</p>}
       </div>
       <div>
-        <h3>Untreated Data</h3>
+        <h3>Données non traitées</h3>
         {untreatedFiles.length > 0 ? (
           <table className="table">
             <thead>
               <tr className="tr">
-                <th className="th">File Name</th>
+                <th className="th">Nom du fichier</th>
               </tr>
             </thead>
             <tbody>
@@ -99,16 +99,16 @@ function Dashboard() {
             </tbody>
           </table>
         ) : (
-          <p>No untreated data available.</p>
+          <p>Aucune donnée non traitée disponible.</p>
         )}
       </div>
       <div>
-        <h3>Treated Data</h3>
+        <h3>Données traitées</h3>
         {treatedFiles.length > 0 ? (
           <table className="table">
             <thead>
               <tr className="tr">
-                <th className="th">File Name</th>
+                <th className="th">Nom du fichier</th>
               </tr>
             </thead>
             <tbody>
@@ -120,11 +120,11 @@ function Dashboard() {
             </tbody>
           </table>
         ) : (
-          <p>No treated data available.</p>
+          <p>Aucune donnée traitée disponible.</p>
         )}
       </div>
       <div>
-        <h3>ChromaDB Data</h3>
+        <h3>Données ChromaDB</h3>
         {chromaDBData.documents.length > 0 ? (
           <table className="table">
             <thead>
@@ -145,7 +145,7 @@ function Dashboard() {
             </tbody>
           </table>
         ) : (
-          <p>No ChromaDB data found.</p>
+          <p>Aucune donnée ChromaDB trouvée.</p>
         )}
       </div>
     </div>

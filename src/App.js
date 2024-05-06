@@ -13,7 +13,7 @@ const App = () => {
   const [prompt, setPrompt] = useState('');
   const [chatHistory, setChatHistory] = useState([{
     prompt: '',
-    answer: 'My name is NeuralEDU (TradeMark) your chatbot assistance to your Biological course. You can ask ......',
+    answer: "Je m'appelle NeuralEDU (TradeMark), votre chatbot d'assistance pour votre cours de biologie. Vous pouvez demander ......",
     suggestions: ['1. Comment est formé le vent?', '2. Que veut dire le métabolisme?', '3. De quoi est fait le vin?'],
     context: ''
   }]);
@@ -135,7 +135,7 @@ const App = () => {
     <Router>
       <div className="app-container">
         <header className="app-header">
-          <h1>FYP2 Biology Chatbot</h1>
+          <h1>Chatbot de biologie - FYP2</h1>
         </header>
         <Routes>
           <Route path="/dashboard" element={<Dashboard />} />
@@ -152,7 +152,7 @@ const App = () => {
                       <LLMAnswer answer={entry.answer} />
                       <button onClick={() => playTextToSpeech(entry.answer)}>
                         <FontAwesomeIcon icon={faVolumeUp} />
-                        Hear Response
+                        Écoutez la réponse
                         {isSpeaking && <PulseLoader color="#36D7B7" size={8} />}
                       </button>
                       {index === chatHistory.length - 1 && entry.suggestions && (
@@ -171,8 +171,8 @@ const App = () => {
                 {isLoading && <PulseLoader color="#36D7B7" />}
               </div>
               <form className="prompt-form" onSubmit={handleFormSubmit}>
-                <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="Enter your question here..."/>
-                <button type="submit">Send</button>
+                <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="Ecrire votre question ici..."/>
+                <button type="submit">Envoyer</button>
                 <button type="button" onClick={handleVoiceRecording} className="mic-button">
                   {isRecording ? <FontAwesomeIcon icon={faMicrophoneSlash} /> : <FontAwesomeIcon icon={faMicrophone} />}
                 </button>

@@ -5607,3 +5607,6 @@ RuntimeError: coroutine raised StopIteration
 [32mINFO[0m:     [06-05-2024 21:39:03] 127.0.0.1:34614 - "POST /api/v1/collections/98eb3d25-961d-4d8f-8f41-cdbfd45cf115/add HTTP/1.1" 201
 [32mINFO[0m:     [06-05-2024 21:39:03] 127.0.0.1:34614 - "POST /api/v1/collections/98eb3d25-961d-4d8f-8f41-cdbfd45cf115/get HTTP/1.1" 200
 [32mINFO[0m:     [06-05-2024 21:39:27] 127.0.0.1:34614 - "POST /api/v1/collections/98eb3d25-961d-4d8f-8f41-cdbfd45cf115/get HTTP/1.1" 200
+[32mINFO[0m:     [06-05-2024 21:49:41] 127.0.0.1:44718 - "POST /api/v1/collections/98eb3d25-961d-4d8f-8f41-cdbfd45cf115/get HTTP/1.1" 200
+[32mINFO[0m:     [06-05-2024 21:50:38] 127.0.0.1:60392 - "POST /api/v1/collections/98eb3d25-961d-4d8f-8f41-cdbfd45cf115/get HTTP/1.1" 200
+[32mINFO[0m:     [06-05-2024 21:50:44] 127.0.0.1:60392 - "POST /api/v1/collections/98eb3d25-961d-4d8f-8f41-cdbfd45cf115/get HTTP/1.1" 200
