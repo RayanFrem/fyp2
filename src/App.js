@@ -1,40 +1,95 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import './css/App.css';
 import LLMAnswer from './components/LLMAnswer';
-import SuggestionItem from './components/Suggestions/SuggestionItem';
 import Dashboard from './components/Dashboard/Dashboard';
+import Full from './components/FullPage/full';
 import { getGeminiAnswer, getGeminiSuggestions } from './services/GeminiAPI';
-import { getTranscription } from './services/whisper';
-import { createFile } from './services/fileSystem';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMicrophone, faMicrophoneSlash, faVolumeUp } from '@fortawesome/free-solid-svg-icons';
 import { PulseLoader } from 'react-spinners';
-import Full from './components/FullPage/full';
 
 const App = () => {
   const [prompt, setPrompt] = useState('');
   const [chatHistory, setChatHistory] = useState([{
     prompt: '',
-    answer: 'My name is NeuralEDU (TradeMark) your chatbot assistance to your Biological course.You can ask ......',
-    suggestions: ['1.Comment est formé le vent?', '2.Que veut dire le métabolisme?', '3.De quoi est fait le vin?'],
+    answer: 'My name is NeuralEDU (TradeMark) your chatbot assistance to your Biological course. You can ask ......',
+    suggestions: ['1. Comment est formé le vent?', '2. Que veut dire le métabolisme?', '3. De quoi est fait le vin?'],
     context: ''
   }]);
   const [isLoading, setIsLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
 
+  const chunkText = (text, chunkSize) => {
+    const chunks = [];
+    while (text.length > 0) {
+      let chunk = text.substring(0, chunkSize);
+      let lastSpace = chunk.lastIndexOf(' ');
+      if (lastSpace > 0 && text.length > chunkSize) {
+        chunk = chunk.substring(0, lastSpace);
+      }
+      chunks.push(chunk);
+      text = text.substring(chunk.length);
+    }
+    return chunks;
+  };
+
   const playTextToSpeech = (text) => {
     const synth = window.speechSynthesis;
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'fr-FR';
-    const voices = synth.getVoices().find(voice => voice.lang === 'fr-FR');
-    if (voices) utterance.voice = voices;
-    synth.speak(utterance);
+    const chunks = chunkText(text, 120);
+    if (synth.speaking) {
+      synth.cancel();
+    }
+  
+    let currentChunkIndex = 0;
+  
+    const speakNextChunk = (voices) => {
+      if (currentChunkIndex < chunks.length) {
+        const chunk = chunks[currentChunkIndex];
+        const utterance = new SpeechSynthesisUtterance(chunk);
+        let voice = voices.find(voice => voice.lang === 'fr-FR');
+        if (!voice) {
+          voice = voices.find(voice => voice.lang.startsWith('en-'));
+          console.log('Using English voice as no French voice was found.');
+        } else {
+          console.log('Using French voice.');
+        }
+  
+        utterance.voice = voice;
+        utterance.lang = voice.lang;
+        utterance.onend = () => {
+          currentChunkIndex++;
+          speakNextChunk(voices);
+        };
+        utterance.onerror = (event) => {
+          console.error('Speech synthesis error:', event);
+        };
+  
+        synth.speak(utterance);
+      } else {
+        setIsSpeaking(false);
+      }
+    };
+  
+    const setVoiceAndSpeak = (voices) => {
+      setIsSpeaking(true); 
+      speakNextChunk(voices);
+    };
+  
+    if (synth.getVoices().length === 0) {
+      window.speechSynthesis.onvoiceschanged = () => {
+        setVoiceAndSpeak(synth.getVoices());
+      };
+    } else {
+      setVoiceAndSpeak(synth.getVoices());
+    }
   };
+  
 
   const handleVoiceRecording = () => {
     if (isRecording) {
@@ -51,19 +106,8 @@ const App = () => {
           mediaRecorderRef.current.addEventListener('stop', () => {
             const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/mp3' });
             const audioFile = new File([audioBlob], 'tmp.mp3', { type: 'audio/mp3' });
-            createFile(audioFile, audioFile.name).then(() => {
-              setIsTranscribing(true);
-              getTranscription(audioFile.name).then(transcription => {
-                setPrompt(transcription);
-                addUserPrompt(transcription);
-                setIsTranscribing(false);
-              }).catch(error => {
-                console.error('Error in transcription:', error);
-                setIsTranscribing(false);
-              });
-            }).catch(error => {
-              console.error('Error saving audio:', error);
-            });
+            setIsTranscribing(true);
+            // You can add code here to upload the file or convert it to text
           });
           mediaRecorderRef.current.start();
           setIsRecording(true);
@@ -77,7 +121,7 @@ const App = () => {
     setIsLoading(true);
     const [newAnswer, newContext] = await getGeminiAnswer(newPrompt);
     const newSuggestions = await getGeminiSuggestions(newPrompt, newAnswer);
-    setChatHistory(chatHistory => [...chatHistory, { prompt: newPrompt, answer: newAnswer, suggestions: newSuggestions, context: newContext }]);
+    setChatHistory([...chatHistory, { prompt: newPrompt, answer: newAnswer, suggestions: newSuggestions, context: newContext }]);
     setPrompt('');
     setIsLoading(false);
   };
@@ -109,17 +153,17 @@ const App = () => {
                       <button onClick={() => playTextToSpeech(entry.answer)}>
                         <FontAwesomeIcon icon={faVolumeUp} />
                         Hear Response
+                        {isSpeaking && <PulseLoader color="#36D7B7" size={8} />}
                       </button>
                       {index === chatHistory.length - 1 && entry.suggestions && (
-  <div className="suggestions-section">
-    {entry.suggestions.map((suggestion, idx) => (
-      <button key={idx} onClick={() => addUserPrompt(suggestion.length > 2 ? suggestion.substring(2) : suggestion)}>
-        {suggestion.length > 2 ? suggestion.substring(2) : suggestion}
-      </button>
-    ))}
-  </div>
-)}
-
+                        <div className="suggestions-section">
+                          {entry.suggestions.map((suggestion, idx) => (
+                            <button key={idx} onClick={() => addUserPrompt(suggestion.length > 2 ? suggestion.substring(2) : suggestion)}>
+                              {suggestion.length > 2 ? suggestion.substring(2) : suggestion}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
