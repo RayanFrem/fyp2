@@ -175,8 +175,8 @@ def upload():
     if file and allowed_file_ext(file.filename):
         filename = secure_filename(file.filename)
         file.save(os.path.join('../data/untreated', filename))
-        return 'File uploaded successfully', 200
-    return 'Invalid file or upload error', 400
+        return 'Fichier téléchargé avec succès', 200
+    return 'Fichier invalide ou erreur de téléchargement', 400
 
 @app.route('/get-gemini-answer', methods=['POST'])
 def get_gemini_answer():     
@@ -238,11 +238,11 @@ def get_audio_transcription():
     except subprocess.CalledProcessError as e:
         print("Error running Whisper:", e)
         os.remove(save_path)
-        return jsonify({'error': 'Error processing audio with Whisper'}), 500
+        return jsonify({'error': "Erreur lors du traitement de l'audio avec Whisper"}), 500
     except Exception as e:
         print(f"An error occurred: {e}")
         os.remove(save_path)
-        return jsonify({"error": "An error occurred processing your request."}), 500
+        return jsonify({"error": "Une erreur s'est produite lors du traitement de votre demande"}), 500
 
 
 @app.route('/get-gemini-suggestions', methods=['POST'])
@@ -346,7 +346,7 @@ def treat_data():
 
         save_index(index)
         save_id_map(id_map)
-        return jsonify("Data inserted into FAISS, ChromaDB, and ID map updated successfully")
+        return jsonify("Les données insérées dans FAISS, ChromaDB et la carte d'identification ont été mises à jour avec succès")
     except Exception as e:
         traceback.print_exc()
         return jsonify({'error': str(e)})
@@ -384,9 +384,9 @@ def save_audio():
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        return jsonify({'message': 'File saved successfully'}), 200
+        return jsonify({'message': 'Fichier enregistré avec succès'}), 200
     else:
-        return jsonify({'error': 'File type not allowed'}), 400
+        return jsonify({'error': 'Type de fichier non autorisé'}), 400
 
 if __name__ == '_main_':
     untreated_dir = os.path.join(BASE_DIR, 'untreated')
