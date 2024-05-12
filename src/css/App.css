@@ -26,6 +26,14 @@ body, html {
   margin-left: 2rem;
 }
 
+.tts{
+  display:flex;
+}
+
+.speech-controls{
+  margin-left:40px;
+}
+
 .chat-entry {
   display: flex;
   flex-direction: column;

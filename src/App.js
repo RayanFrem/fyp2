@@ -8,7 +8,7 @@ import { getGeminiAnswer, getGeminiSuggestions } from './services/GeminiAPI';
 import { createFile } from './services/fileSystem';
 import { getTranscription } from './services/whisper';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMicrophone, faMicrophoneSlash, faVolumeUp } from '@fortawesome/free-solid-svg-icons';
+import { faMicrophone, faMicrophoneSlash, faVolumeUp, faStop } from '@fortawesome/free-solid-svg-icons';
 import { PulseLoader } from 'react-spinners';
 
 const App = () => {
@@ -23,6 +23,8 @@ const App = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [currentUtterance, setCurrentUtterance] = useState(null);
+  const [speakingIndex, setSpeakingIndex] = useState(null);
 
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
@@ -41,19 +43,21 @@ const App = () => {
     return chunks;
   };
 
-  const playTextToSpeech = (text) => {
+  const playTextToSpeech = (text, index) => {
     const synth = window.speechSynthesis;
     const chunks = chunkText(text, 120);
     if (synth.speaking) {
       synth.cancel();
     }
-  
+
     let currentChunkIndex = 0;
-  
+
     const speakNextChunk = (voices) => {
       if (currentChunkIndex < chunks.length) {
         const chunk = chunks[currentChunkIndex];
         const utterance = new SpeechSynthesisUtterance(chunk);
+        setCurrentUtterance(utterance);
+        setSpeakingIndex(index);
         let voice = voices.find(voice => voice.lang === 'fr-FR');
         if (!voice) {
           voice = voices.find(voice => voice.lang.startsWith('en-'));
@@ -61,7 +65,7 @@ const App = () => {
         } else {
           console.log('Using French voice.');
         }
-  
+
         utterance.voice = voice;
         utterance.lang = voice.lang;
         utterance.onend = () => {
@@ -71,18 +75,20 @@ const App = () => {
         utterance.onerror = (event) => {
           console.error('Speech synthesis error:', event);
         };
-  
+
         synth.speak(utterance);
       } else {
         setIsSpeaking(false);
+        setCurrentUtterance(null);
+        setSpeakingIndex(null);
       }
     };
-  
+
     const setVoiceAndSpeak = (voices) => {
-      setIsSpeaking(true); 
+      setIsSpeaking(true);
       speakNextChunk(voices);
     };
-  
+
     if (synth.getVoices().length === 0) {
       window.speechSynthesis.onvoiceschanged = () => {
         setVoiceAndSpeak(synth.getVoices());
@@ -92,42 +98,51 @@ const App = () => {
     }
   };
 
+  const stopSpeech = () => {
+    if (window.speechSynthesis.speaking || window.speechSynthesis.paused) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+      setCurrentUtterance(null);
+      setSpeakingIndex(null);
+    }
+  };
+
   const handleVoiceRecording = () => {
     if (isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
     } else {
       navigator.mediaDevices.getUserMedia({ audio: true })
-      .then(stream => {
-        mediaRecorderRef.current = new MediaRecorder(stream);
-        audioChunksRef.current = [];
+        .then(stream => {
+          mediaRecorderRef.current = new MediaRecorder(stream);
+          audioChunksRef.current = [];
 
-        mediaRecorderRef.current.addEventListener("dataavailable", event => {
-          audioChunksRef.current.push(event.data);
+          mediaRecorderRef.current.addEventListener("dataavailable", event => {
+            audioChunksRef.current.push(event.data);
+          });
+
+          mediaRecorderRef.current.addEventListener("stop", () => {
+            const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/mp3' });
+            const audioFile = new File([audioBlob], "tmp.mp3", { type: 'audio/mp3' });
+
+            setIsTranscribing(true); // Start loader
+
+            createFile(audioFile, audioFile.name).then(() => {
+              getTranscription(audioFile).then(transcription => {
+                console.log(transcription);
+                setPrompt(transcription);
+              }).catch(error => console.error('Error in transcription:', error))
+                .finally(() => {
+                  setIsTranscribing(false); // Stop loader
+                });
+            }).catch(error => console.error('Error in saving file:', error));
+          });
+
+          mediaRecorderRef.current.start();
+          setIsRecording(true);
+        }).catch(error => {
+          console.error('Error accessing the microphone:', error);
         });
-
-        mediaRecorderRef.current.addEventListener("stop", () => {
-          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/mp3' });
-          const audioFile = new File([audioBlob], "tmp.mp3", { type: 'audio/mp3' });
-
-          setIsTranscribing(true); // Start loader
-
-          createFile(audioFile, audioFile.name).then(() => {
-            getTranscription(audioFile).then(transcription => {
-              console.log(transcription);
-              setPrompt(transcription);
-            }).catch(error => console.error('Error in transcription:', error))
-            .finally(() => {
-              setIsTranscribing(false); // Stop loader
-            });
-          }).catch(error => console.error('Error in saving file:', error));
-        });
-
-        mediaRecorderRef.current.start();
-        setIsRecording(true);
-      }).catch(error => {
-        console.error('Error accessing the microphone:', error);
-      });
     }
   };
 
@@ -164,11 +179,18 @@ const App = () => {
                     </div>
                     <div className="answer-section left">
                       <LLMAnswer answer={entry.answer} />
-                      <button onClick={() => playTextToSpeech(entry.answer)}>
-                        <FontAwesomeIcon icon={faVolumeUp} />
-                        Écoutez la réponse
-                        {/* {isSpeaking && <PulseLoader color="#36D7B7" size={8} />} */}
-                      </button>
+                      {speakingIndex === index ? (
+                        <div className="speech-controls">
+                          <button onClick={stopSpeech}>
+                            <FontAwesomeIcon icon={faStop} />
+                          </button>
+                        </div>
+                      ) : (
+                        <button onClick={() => playTextToSpeech(entry.answer, index)}>
+                          <FontAwesomeIcon icon={faVolumeUp} />
+                          Écoutez la réponse
+                        </button>
+                      )}
                       {index === chatHistory.length - 1 && entry.suggestions && (
                         <div className="suggestions-section">
                           {entry.suggestions.map((suggestion, idx) => (
@@ -185,7 +207,7 @@ const App = () => {
                 {isLoading && <PulseLoader color="#36D7B7" />}
               </div>
               <form className="prompt-form" onSubmit={handleFormSubmit}>
-                <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="Ecrire votre question ici..."/>
+                <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="Ecrire votre question ici..." />
                 <button type="submit">Envoyer</button>
                 <button type="button" onClick={handleVoiceRecording} className="mic-button">
                   {isRecording ? <FontAwesomeIcon icon={faMicrophoneSlash} /> : <FontAwesomeIcon icon={faMicrophone} />}
@@ -196,7 +218,7 @@ const App = () => {
         </Routes>
       </div>
     </Router>
-  );  
+  );
 };
 
 export default App;
