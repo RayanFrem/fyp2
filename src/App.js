@@ -148,7 +148,8 @@ const App = () => {
 
   const addUserPrompt = async (newPrompt) => {
     setIsLoading(true);
-    const [newAnswer, newContext] = await getGeminiAnswer(newPrompt);
+    const fullConversation = chatHistory.map(entry => ({ prompt: entry.prompt, answer: entry.answer }));
+    const [newAnswer, newContext] = await getGeminiAnswer(newPrompt, fullConversation);
     const newSuggestions = await getGeminiSuggestions(newPrompt, newAnswer);
     setChatHistory([...chatHistory, { prompt: newPrompt, answer: newAnswer, suggestions: newSuggestions, context: newContext }]);
     setPrompt('');

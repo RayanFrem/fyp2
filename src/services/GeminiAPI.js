@@ -10,17 +10,17 @@ async function getGeminiSuggestions(question, answer, prompt) {
     return result;
   }
   
-  async function getGeminiAnswer(prompt) {
+  async function getGeminiAnswer(prompt, fullConversation) {
     const response = await fetch('http://localhost:5000/get-gemini-answer', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ prompt })
+      body: JSON.stringify({ prompt, fullConversation })
     });
     const result = await response.json();
-    return [result.answer,result.context];
-  }
+    return [result.answer, result.context];
+  }  
   
   module.exports = {
     getGeminiSuggestions,

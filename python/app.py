@@ -183,7 +183,8 @@ def get_gemini_answer():
     try:
         data = request.json
         prompt = data['prompt']
-        
+        full_conversation = data.get('fullConversation', [])
+
         query_embedding = model_embed.encode(prompt)
         query_embedding = np.array(query_embedding).astype('float32').reshape(1, -1)
         
@@ -201,10 +202,15 @@ def get_gemini_answer():
                     documents.extend(doc_data['documents'])
         
         context = " ".join(documents)
-        full_prompt = f"Ceci est la question: {prompt}\nVoici le contexte obtenu: {context}\nSur la base de ce contexte, veuillez fournir une réponse bien structurée en français:"
+        
+        if full_conversation:
+            conversation_context = "\n".join([f"Q: {item['prompt']}\nA: {item['answer']}" for item in full_conversation])
+            full_prompt = f"Voici la conversation complète:\n{conversation_context}\n\nCeci est la question actuelle: {prompt}\nVoici le contexte obtenu: {context}\nSur la base de ce contexte et de la conversation complète, veuillez fournir une réponse bien structurée en français:"
+        else:
+            full_prompt = f"Ceci est la question: {prompt}\nVoici le contexte obtenu: {context}\nSur la base de ce contexte, veuillez fournir une réponse bien structurée en français:"
+        
         response = gemini_model.generate_content(full_prompt)
         cleaned_response = remove_asterisks(response.text)
-        #insert_into_faq(prompt, response)
         return jsonify({"answer": cleaned_response, "context": context})
     except Exception as e:
         traceback.print_exc()
