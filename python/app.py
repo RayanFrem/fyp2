@@ -309,6 +309,8 @@ def treat_data():
 
         for pdf in list_pdf_files(UNTREATED_DIR):
             pdf_path = os.path.join(UNTREATED_DIR, pdf)
+            shutil.move(pdf_path, os.path.join(TREATED_DIR, pdf))
+            pdf_path = os.path.join(TREATED_DIR, pdf)
             chunks = chunk_pdf_text(pdf_path, 800)
             embeddings = []
             documents = []

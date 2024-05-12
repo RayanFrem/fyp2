@@ -5,6 +5,8 @@ import LLMAnswer from './components/LLMAnswer';
 import Dashboard from './components/Dashboard/Dashboard';
 import Full from './components/FullPage/full';
 import { getGeminiAnswer, getGeminiSuggestions } from './services/GeminiAPI';
+import { createFile } from './services/fileSystem';
+import { getTranscription } from './services/whisper';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMicrophone, faMicrophoneSlash, faVolumeUp } from '@fortawesome/free-solid-svg-icons';
 import { PulseLoader } from 'react-spinners';
@@ -89,7 +91,6 @@ const App = () => {
       setVoiceAndSpeak(synth.getVoices());
     }
   };
-  
 
   const handleVoiceRecording = () => {
     if (isRecording) {
@@ -97,23 +98,36 @@ const App = () => {
       setIsRecording(false);
     } else {
       navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(stream => {
-          mediaRecorderRef.current = new MediaRecorder(stream);
-          audioChunksRef.current = [];
-          mediaRecorderRef.current.addEventListener('dataavailable', event => {
-            audioChunksRef.current.push(event.data);
-          });
-          mediaRecorderRef.current.addEventListener('stop', () => {
-            const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/mp3' });
-            const audioFile = new File([audioBlob], 'tmp.mp3', { type: 'audio/mp3' });
-            setIsTranscribing(true);
-            // You can add code here to upload the file or convert it to text
-          });
-          mediaRecorderRef.current.start();
-          setIsRecording(true);
-        }).catch(error => {
-          console.error('Error accessing the microphone:', error);
+      .then(stream => {
+        mediaRecorderRef.current = new MediaRecorder(stream);
+        audioChunksRef.current = [];
+
+        mediaRecorderRef.current.addEventListener("dataavailable", event => {
+          audioChunksRef.current.push(event.data);
         });
+
+        mediaRecorderRef.current.addEventListener("stop", () => {
+          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/mp3' });
+          const audioFile = new File([audioBlob], "tmp.mp3", { type: 'audio/mp3' });
+
+          setIsTranscribing(true); // Start loader
+
+          createFile(audioFile, audioFile.name).then(() => {
+            getTranscription(audioFile).then(transcription => {
+              console.log(transcription);
+              setPrompt(transcription);
+            }).catch(error => console.error('Error in transcription:', error))
+            .finally(() => {
+              setIsTranscribing(false); // Stop loader
+            });
+          }).catch(error => console.error('Error in saving file:', error));
+        });
+
+        mediaRecorderRef.current.start();
+        setIsRecording(true);
+      }).catch(error => {
+        console.error('Error accessing the microphone:', error);
+      });
     }
   };
 
@@ -135,7 +149,7 @@ const App = () => {
     <Router>
       <div className="app-container">
         <header className="app-header">
-          <h1>Chatbot de biologie - FYP2</h1>
+          <h1>NeuralEDU</h1>
         </header>
         <Routes>
           <Route path="/dashboard" element={<Dashboard />} />
@@ -153,7 +167,7 @@ const App = () => {
                       <button onClick={() => playTextToSpeech(entry.answer)}>
                         <FontAwesomeIcon icon={faVolumeUp} />
                         Écoutez la réponse
-                        {isSpeaking && <PulseLoader color="#36D7B7" size={8} />}
+                        {/* {isSpeaking && <PulseLoader color="#36D7B7" size={8} />} */}
                       </button>
                       {index === chatHistory.length - 1 && entry.suggestions && (
                         <div className="suggestions-section">
