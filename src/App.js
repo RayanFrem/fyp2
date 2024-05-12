@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import './css/App.css';
 import LLMAnswer from './components/LLMAnswer';
@@ -11,14 +11,39 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMicrophone, faMicrophoneSlash, faVolumeUp, faStop } from '@fortawesome/free-solid-svg-icons';
 import { PulseLoader } from 'react-spinners';
 
+const questionBank = [
+  '..Comment est formé le vent?',
+  '..Que veut dire le métabolisme?',
+  '..De quoi est fait le vin?',
+  "..Quelle est la source de l'énergie du vent ?",
+  "..Quels facteurs influencent la production d'électricité ?",
+  '..Quels sont les ingrédients du vin?',
+  '..Comment le métabolisme affecte-t-il la croissance?',
+  "..L'alcool affecte-t-il le cerveau?",
+  "..C'est quoi le systeme solaire?",
+  '..Qui est Galilée?',
+  "..Qu'est ce qu'une Comète?",
+  '..De quoi sont constitues Les planètes joviennes',
+  "..C'est quoi un satellite",
+  '..Que font Les combustibles fossiles?',
+  "..Quel est l'impact environnemental des combustibles fossiles?",
+  '..Que signifie La biodiversité'
+];
+
+const getRandomSuggestions = (bank, count) => {
+  const shuffled = bank.sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count).map((question, index) => question.slice(0));
+};
+
 const App = () => {
-  const [prompt, setPrompt] = useState('');
   const [chatHistory, setChatHistory] = useState([{
     prompt: '',
     answer: "Je m'appelle NeuralEDU (TradeMark), votre chatbot d'assistance pour votre cours de biologie. Vous pouvez demander ......",
-    suggestions: ['1. Comment est formé le vent?', '2. Que veut dire le métabolisme?', '3. De quoi est fait le vin?'],
+    suggestions: getRandomSuggestions(questionBank, 3),
     context: ''
   }]);
+
+  const [prompt, setPrompt] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
