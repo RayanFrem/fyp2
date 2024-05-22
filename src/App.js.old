@@ -50,84 +50,78 @@ const App = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [currentUtterance, setCurrentUtterance] = useState(null);
   const [speakingIndex, setSpeakingIndex] = useState(null);
-  const lastChatEntryRef = useRef(null);
+
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
 
-  const chunkText = (text, maxLength) => {
-    const sentences = text.split(/(?<=\.)/g);
+  const chunkText = (text, chunkSize) => {
     const chunks = [];
-    let currentChunk = '';
+    while (text.length > 0) {
+      let chunk = text.substring(0, chunkSize);
+      let lastSpace = chunk.lastIndexOf(' ');
+      if (lastSpace > 0 && text.length > chunkSize) {
+        chunk = chunk.substring(0, lastSpace);
+      }
+      chunks.push(chunk);
+      text = text.substring(chunk.length);
+    }
+    return chunks;
+  };
 
-    sentences.forEach(sentence => {
-        if (currentChunk.length + sentence.length > maxLength) {
-            chunks.push(currentChunk);
-            currentChunk = sentence;
-        } else {
-            currentChunk += sentence;
-        }
-    });
-
-    if (currentChunk.length > 0) {
-        chunks.push(currentChunk);
+  const playTextToSpeech = (text, index) => {
+    const synth = window.speechSynthesis;
+    const chunks = chunkText(text, 120);
+    if (synth.speaking) {
+      synth.cancel();
     }
 
-    return chunks;
-};
-const playTextToSpeech = (text, index) => {
-  const synth = window.speechSynthesis;
-  const chunks = chunkText(text, 120);  // Adjust the max length as needed
-  if (synth.speaking) {
-      synth.cancel();
-  }
+    let currentChunkIndex = 0;
 
-  let currentChunkIndex = 0;
-
-  const speakNextChunk = (voices) => {
+    const speakNextChunk = (voices) => {
       if (currentChunkIndex < chunks.length) {
-          const chunk = chunks[currentChunkIndex];
-          const utterance = new SpeechSynthesisUtterance(chunk);
-          setCurrentUtterance(utterance);
-          setSpeakingIndex(index);
-          let voice = voices.find(voice => voice.lang === 'fr-FR');
-          if (!voice) {
-              voice = voices.find(voice => voice.lang.startsWith('en-'));
-              console.log('Using English voice as no French voice was found.');
-          } else {
-              console.log('Using French voice.');
-          }
+        const chunk = chunks[currentChunkIndex];
+        const utterance = new SpeechSynthesisUtterance(chunk);
+        setCurrentUtterance(utterance);
+        setSpeakingIndex(index);
+        let voice = voices.find(voice => voice.lang === 'fr-FR');
+        if (!voice) {
+          voice = voices.find(voice => voice.lang.startsWith('en-'));
+          console.log('Using English voice as no French voice was found.');
+        } else {
+          console.log('Using French voice.');
+        }
 
-          utterance.voice = voice;
-          utterance.lang = voice.lang;
-          utterance.onend = () => {
-              currentChunkIndex++;
-              speakNextChunk(voices);
-          };
-          utterance.onerror = (event) => {
-              console.error('Speech synthesis error:', event);
-          };
+        utterance.voice = voice;
+        utterance.lang = voice.lang;
+        utterance.onend = () => {
+          currentChunkIndex++;
+          speakNextChunk(voices);
+        };
+        utterance.onerror = (event) => {
+          console.error('Speech synthesis error:', event);
+        };
 
-          synth.speak(utterance);
+        synth.speak(utterance);
       } else {
-          setIsSpeaking(false);
-          setCurrentUtterance(null);
-          setSpeakingIndex(null);
+        setIsSpeaking(false);
+        setCurrentUtterance(null);
+        setSpeakingIndex(null);
       }
-  };
+    };
 
-  const setVoiceAndSpeak = (voices) => {
+    const setVoiceAndSpeak = (voices) => {
       setIsSpeaking(true);
       speakNextChunk(voices);
-  };
+    };
 
-  if (synth.getVoices().length === 0) {
+    if (synth.getVoices().length === 0) {
       window.speechSynthesis.onvoiceschanged = () => {
-          setVoiceAndSpeak(synth.getVoices());
+        setVoiceAndSpeak(synth.getVoices());
       };
-  } else {
+    } else {
       setVoiceAndSpeak(synth.getVoices());
-  }
-};
+    }
+  };
 
   const stopSpeech = () => {
     if (window.speechSynthesis.speaking || window.speechSynthesis.paused) {
@@ -162,7 +156,6 @@ const playTextToSpeech = (text, index) => {
               getTranscription(audioFile).then(transcription => {
                 console.log(transcription);
                 setPrompt(transcription);
-                addUserPrompt(transcription);
               }).catch(error => console.error('Error in transcription:', error))
                 .finally(() => {
                   setIsTranscribing(false);
@@ -178,59 +171,14 @@ const playTextToSpeech = (text, index) => {
     }
   };
 
-  const animatePrompt = (promptText) => {
-    const textarea = document.querySelector('.prompt-form textarea');
-
-    const tempDiv = document.createElement('div');
-    tempDiv.textContent = promptText;
-    tempDiv.style.position = 'absolute';
-    tempDiv.style.left = `${textarea.offsetLeft}px`;
-    tempDiv.style.top = `${textarea.offsetTop}px`;
-    tempDiv.style.width = `fit-content`;
-    tempDiv.style.height = `auto`;
-    tempDiv.style.background = 'lightgray';
-    tempDiv.style.color = 'black';
-    tempDiv.style.padding = '10px';
-    tempDiv.style.borderRadius = '4px';
-    tempDiv.style.transition = 'all 0.5s ease-in-out';
-    tempDiv.style.zIndex = 1000;
-
-    document.body.appendChild(tempDiv);
-
-    setTimeout(() => {
-        if (lastChatEntryRef.current) {
-            const lastEntryPosition = lastChatEntryRef.current.getBoundingClientRect();
-            tempDiv.style.left = `${lastEntryPosition.left}px`;
-            tempDiv.style.top = `${lastEntryPosition.top}px`;
-            tempDiv.style.width = `${lastEntryPosition.width}px`;
-            tempDiv.style.height = `${lastEntryPosition.height}px`;
-        }
-    }, 100);
-
-    setTimeout(() => {
-        document.body.removeChild(tempDiv);
-    }, 600); 
-};
-
   const addUserPrompt = async (newPrompt) => {
-    //animatePrompt(newPrompt);
-
-    const tempHistory = [...chatHistory, { prompt: newPrompt, answer: "Loading...", suggestions: [], context: '' }];
-    setChatHistory(tempHistory);
     setIsLoading(true);
-
-    setTimeout(async () => { 
-      const fullConversation = tempHistory.map(entry => ({ prompt: entry.prompt, answer: entry.answer }));
-      const [newAnswer, newContext] = await getGeminiAnswer(newPrompt, fullConversation);
-      const newSuggestions = await getGeminiSuggestions(newPrompt, newAnswer);
-
-      tempHistory[tempHistory.length - 1] = { prompt: newPrompt, answer: newAnswer, suggestions: newSuggestions, context: newContext };
-      setChatHistory(tempHistory);
-      
-      setPrompt('');
-      setIsLoading(false);
-      playTextToSpeech(newAnswer, tempHistory.length - 1);
-    }, 500);
+    const fullConversation = chatHistory.map(entry => ({ prompt: entry.prompt, answer: entry.answer }));
+    const [newAnswer, newContext] = await getGeminiAnswer(newPrompt, fullConversation);
+    const newSuggestions = await getGeminiSuggestions(newPrompt, newAnswer);
+    setChatHistory([...chatHistory, { prompt: newPrompt, answer: newAnswer, suggestions: newSuggestions, context: newContext }]);
+    setPrompt('');
+    setIsLoading(false);
   };
 
   const handleFormSubmit = (e) => {
@@ -251,7 +199,7 @@ const playTextToSpeech = (text, index) => {
             <div>
               <div className="chat-sequence">
                 {chatHistory.map((entry, index) => (
-                  <div key={index} ref={index === chatHistory.length - 1 ? lastChatEntryRef : null} className="chat-entry">
+                  <div key={index} className="chat-entry">
                     <div className="question-section right">
                       <p>{entry.prompt}</p>
                     </div>
